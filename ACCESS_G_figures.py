@@ -9,6 +9,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 # testasdf
 
+
 def gen_omniglobe_figs(gadi=True, i_min=1, i_max=192):
 
     if gadi:
@@ -67,8 +68,6 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=192):
         rcParams.update({'font.serif': 'Liberation Serif'})
         rcParams.update({'mathtext.fontset': 'dejavuserif'})
         rcParams.update({'font.size': 10})
-
-        px = 1/rcParams['figure.dpi']
 
         fig = plt.figure(figsize=(28, 14))
         ax = fig.add_subplot(1, 1, 1, projection=proj)

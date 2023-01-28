@@ -1,0 +1,8 @@
+<PAMDataset>
+  <Metadata domain="IMAGE_STRUCTURE">
+    <MDI key="INTERLEAVE">PIXEL</MDI>
+  </Metadata>
+  <Metadata>
+    <MDI key="Software">Matplotlib version3.4.2, https://matplotlib.org/</MDI>
+  </Metadata>
+</PAMDataset>

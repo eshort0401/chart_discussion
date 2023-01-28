@@ -86,25 +86,12 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=192):
         grid.xlocator = mticker.FixedLocator(np.arange(-180, 180+10, 10))
         grid.ylocator = mticker.FixedLocator(np.arange(-90, 100, 10))
 
-        countries = cfeature.NaturalEarthFeature(
-            category='cultural',
-            name='admin_0_countries',
-            scale='50m',
-            facecolor='none')
-
-        land = cfeature.NaturalEarthFeature(
-            category='natural',
-            name='land',
-            scale='50m',
-            facecolor='none')
-
+        ax.add_feature(cfeature.LAND)
         ax.add_feature(
-            land, facecolor=np.array([0.9375, 0.9375, 0.859375]))
-        ax.coastlines(
-            '50m', linewidth=1,
+            cfeature.COASTLINE, linewidth=1,
             edgecolor=np.array([0.9375, 0.9375, 0.859375])/2)
         ax.add_feature(
-            countries,
+            cfeature.BORDERS,
             edgecolor=np.array([0.9375, 0.9375, 0.859375])/2,
             linewidth=1)
 

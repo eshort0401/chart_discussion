@@ -86,12 +86,25 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=192):
         grid.xlocator = mticker.FixedLocator(np.arange(-180, 180+10, 10))
         grid.ylocator = mticker.FixedLocator(np.arange(-90, 100, 10))
 
-        ax.add_feature(cfeature.LAND)
+        countries = cfeature.NaturalEarthFeature(
+            category='cultural',
+            name='admin_0_countries',
+            scale='50m',
+            facecolor='none')
+
+        land = cfeature.NaturalEarthFeature(
+            category='natural',
+            name='land',
+            scale='50m',
+            facecolor='none')
+
         ax.add_feature(
-            cfeature.COASTLINE, linewidth=1,
+            land, facecolor=np.array([0.9375, 0.9375, 0.859375]))
+        ax.coastlines(
+            '50m', linewidth=1,
             edgecolor=np.array([0.9375, 0.9375, 0.859375])/2)
         ax.add_feature(
-            cfeature.BORDERS,
+            countries,
             edgecolor=np.array([0.9375, 0.9375, 0.859375])/2,
             linewidth=1)
 
@@ -215,6 +228,12 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=192):
         ax.axis('off')
 
         print('Saving.')
+
+        if gadi:
+            save_dir = '/g/data/w40/esh563/chart_discussion_figs/ACCESS_G/'
+        else:
+            save_dir = './mslp_anim/'
+
         plt.savefig(
-            './mslp_anim/mslp_{:04d}.png'.format(i), bbox_inches='tight',
+            save_dir + 'mslp_{:04d}.png'.format(i), bbox_inches='tight',
             facecolor='w', pad_inches=0, dpi=190)

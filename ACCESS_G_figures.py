@@ -70,7 +70,7 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=192):
 
         px = 1/rcParams['figure.dpi']
 
-        fig = plt.figure(figsize=(2000*px, 1000*px))
+        fig = plt.figure(figsize=(28, 14))
         ax = fig.add_subplot(1, 1, 1, projection=proj)
 
         # Setup Map

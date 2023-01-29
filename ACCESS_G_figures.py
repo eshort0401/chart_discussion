@@ -10,13 +10,18 @@ import cartopy.feature as cfeature
 # testasdf
 
 
-def gen_omniglobe_figs(gadi=True, i_min=1, i_max=192):
+def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
+
+    last_sat = np.busday_offset(
+        str(np.datetime64('today')), 0, roll='backward', weekmask='Sat')
 
     if gadi:
-        base_path = '/g/data/wr45/ops_aps3/access-g/1/20230126/0000/fc/sfc/'
+        base_path = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
+            str(last_sat).replace('-', ''))
     else:
         base_path = 'https://dapds00.nci.org.au/thredds/dodsC/'
-        base_path += 'wr45/ops_aps3/access-g/1/20230126/0000/fc/sfc/'
+        base_path += 'wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
+            str(last_sat).replace('-', ''))
 
     field = 'mslp'
     mslp = xr.open_dataset(base_path + field + '.nc')[field]

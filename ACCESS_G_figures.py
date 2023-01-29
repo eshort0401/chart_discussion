@@ -17,15 +17,9 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
     if gadi:
         base_path = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
             str(last_wed).replace('-', ''))
-        base_path_temp = '/g/data/wr45/ops_aps3/access-g/1/'
-        base_path_temp += '{}/0000/fc/ml/'.format(
-            str(last_wed).replace('-', ''))
     else:
         base_path = 'https://dapds00.nci.org.au/thredds/dodsC/'
         base_path += 'wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_wed).replace('-', ''))
-        base_path_temp = 'https://dapds00.nci.org.au/thredds/dodsC/'
-        base_path_temp += 'wr45/ops_aps3/access-g/1/{}/0000/fc/ml/'.format(
             str(last_wed).replace('-', ''))
 
     field = 'mslp'
@@ -34,9 +28,8 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
     field = 'accum_prcp'
     prcp = xr.open_dataset(base_path + field + '.nc')[field]
 
-    field = 'air_temp'
-    temp = xr.open_dataset(
-        base_path_temp + field + '.nc')[field].isel(theta_lvl=0)
+    field = 'temp_scrn'
+    temp = xr.open_dataset(base_path + field + '.nc')[field]
 
     lab_pos = []
     for i in np.arange(-170, 190, 30):

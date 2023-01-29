@@ -32,15 +32,15 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
     temp = xr.open_dataset(base_path + field + '.nc')[field]
 
     lab_pos = []
-    for i in np.arange(-170, 190, 30):
+    for i in np.arange(-170, 190, 45):
         lab_pos += list(zip(
-            np.ones(8)*i,
-            np.array([-80, -60, -40, -20, 20, 40, 60, 80])))
+            np.arange(i-5, i+5),
+            np.array([-75, -60, -45, -30, -15, 15, 30, 45, 60, 75])))
 
     temp_lab_pos = []
-    for i in np.arange(-170+15, 190+15, 30):
+    for i in np.arange(-170+15, 190+15, 45):
         temp_lab_pos += list(zip(
-            np.ones(7)*i,
+            np.arange(i-3, i+4),
             np.array([-85, -60, -30, -15, 15, 30, 60, 85])))
 
     # Omni Globe
@@ -69,7 +69,7 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
         rcParams.update({'font.family': 'serif'})
         rcParams.update({'font.serif': 'Liberation Serif'})
         rcParams.update({'mathtext.fontset': 'dejavuserif'})
-        rcParams.update({'font.size': 10})
+        rcParams.update({'font.size': 9})
 
         fig = plt.figure(figsize=(28, 14))
         ax = fig.add_subplot(1, 1, 1, projection=proj)
@@ -97,16 +97,6 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
             linewidth=1)
 
         # Plot datasets
-        hour = int(np.datetime_as_string(time, unit='m')[-5:-3])
-
-        sunrise_lon = 360*np.mod((hour-6), 24)/24
-        sunset_lon = 360*np.mod((hour-18), 24)/24
-
-        if sunrise_lon > 180:
-            sunrise_lon -= 360
-        if sunset_lon > 180:
-            sunset_lon -= 360
-
         mslp_i = mslp.sel(time=time)
 
         prcp_i = (prcp.isel(time=i)-prcp.isel(time=(i-1)))
@@ -123,7 +113,7 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
         conp.changed()
 
         # Setup colorbar
-        cbbox = ax.inset_axes([-177, -11, 53, 12], transform=ax.transData)
+        cbbox = ax.inset_axes([-177, -10, 53, 11], transform=ax.transData)
         cbbox.set_facecolor([1, 1, 1, .7])
         [cbbox.spines[k].set_visible(False) for k in cbbox.spines]
         cbbox.axes.get_xaxis().set_visible(False)
@@ -141,19 +131,13 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
         cbar.ax.set_xlabel('Precipitation [mm/(3 h)]')
 
         print('Plotting MSLP.')
-
-        ax.contour(
+        con8 = ax.contour(
             mslp_i.lon, mslp_i.lat, mslp_i/1e2,
-            levels=np.arange(848, 1108, 16), colors='grey',
-            linewidths=1)
-
-        con16 = ax.contour(
-            mslp_i.lon, mslp_i.lat, mslp_i/1e2,
-            levels=np.arange(840, 1120, 16), colors='k',
+            levels=np.arange(840, 1120, 8), colors='k',
             linewidths=1)
 
         ax.clabel(
-            con16, inline=True, fontsize=10, manual=lab_pos, fmt=mslp_fmt)
+            con8, inline=True, fontsize=9, manual=lab_pos, fmt=mslp_fmt)
 
         print('Plotting temp.')
 
@@ -163,7 +147,7 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
             linewidths=.5, linestyles='solid')
 
         ax.clabel(
-            cont, inline=True, fontsize=10, manual=temp_lab_pos, fmt=temp_fmt)
+            cont, inline=True, fontsize=9, manual=temp_lab_pos, fmt=temp_fmt)
 
         # Get local melbourne time - with daylight savings calculated!
         first_sunday_oct = np.busday_offset(
@@ -189,17 +173,60 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
             mel_time_dt.day_name()[:3] + ' '
             + mel_time_dt.strftime('%d/%m/%Y %H:%M'))
 
+        denver_tz = 'MST'
+        denver_time = time - np.timedelta64(7, 'h')
+        denver_time_dt = pd.to_datetime(str(denver_time))
+        denver_time_str = (
+            denver_time_dt.day_name()[:3] + ' '
+            + denver_time_dt.strftime('%d/%m/%Y %H:%M'))
+
+        man_tz = 'AST'
+        man_time = time - np.timedelta64(4, 'h')
+        man_time_dt = pd.to_datetime(str(man_time))
+        man_time_str = (
+            man_time_dt.day_name()[:3] + ' '
+            + man_time_dt.strftime('%d/%m/%Y %H:%M'))
+
+        nd_tz = 'WAT'
+        nd_time = time + np.timedelta64(1, 'h')
+        nd_time_dt = pd.to_datetime(str(nd_time))
+        nd_time_str = (
+            nd_time_dt.day_name()[:3] + ' '
+            + nd_time_dt.strftime('%d/%m/%Y %H:%M'))
+
+        nov_tz = 'NST'
+        nov_time = time + np.timedelta64(7, 'h')
+        nov_time_dt = pd.to_datetime(str(nov_time))
+        nov_time_str = (
+            nov_time_dt.day_name()[:3] + ' '
+            + nov_time_dt.strftime('%d/%m/%Y %H:%M'))
+
         label = 'ACCESS-G t+{:03d} h \n {} [UTC]'.format(
             i+1, time_str, )
-
         label_aus = '{} [{}]'.format(mel_time_str, mel_tz)
+        label_us = '{} [{}]'.format(denver_time_str, denver_tz)
+        label_bra = '{} [{}]'.format(man_time_str, man_tz)
+        label_chad = '{} [{}]'.format(nd_time_str, nd_tz)
+        label_rus = '{} [{}]'.format(nov_time_str, nov_tz)
 
         ax.text(
-            -152, 1, label, ha='center', fontsize=10,
+            -152, 1, label, ha='center', fontsize=9,
             backgroundcolor=[1, 1, 1, .7])
-
         ax.text(
-            134, -25, label_aus, ha='center', va='center', fontsize=10)
+            134, -25, label_aus, ha='center', va='center', fontsize=9,
+            backgroundcolor=[1, 1, 1, .7])
+        ax.text(
+            -104, 40, label_us, ha='center', va='center', fontsize=9,
+            backgroundcolor=[1, 1, 1, .7])
+        ax.text(
+            -60, -5, label_bra, ha='center', va='center', fontsize=9,
+            backgroundcolor=[1, 1, 1, .7])
+        ax.text(
+            16, 15, label_chad, ha='center', va='center', fontsize=9,
+            backgroundcolor=[1, 1, 1, .7])
+        ax.text(
+            84, 55, label_rus, ha='center', va='center', fontsize=9,
+            backgroundcolor=[1, 1, 1, .7])
 
         ax.axis('off')
 

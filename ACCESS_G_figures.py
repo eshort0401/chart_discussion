@@ -12,16 +12,19 @@ import cartopy.feature as cfeature
 
 def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
 
-    last_sat = np.busday_offset(
-        str(np.datetime64('today')), 0, roll='backward', weekmask='Sat')
+    last_wed = np.busday_offset(
+        str(np.datetime64('today')), 0, roll='backward', weekmask='Wed')
 
     if gadi:
         base_path = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_sat).replace('-', ''))
+            str(last_wed).replace('-', ''))
     else:
         base_path = 'https://dapds00.nci.org.au/thredds/dodsC/'
         base_path += 'wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_sat).replace('-', ''))
+            str(last_wed).replace('-', ''))
+        base_path_temp = 'https://dapds00.nci.org.au/thredds/dodsC/'
+        base_path_temp += 'wr45/ops_aps3/access-g/1/{}/0000/fc/ml/'.format(
+            str(last_wed).replace('-', ''))
 
     field = 'mslp'
     mslp = xr.open_dataset(base_path + field + '.nc')[field]
@@ -29,8 +32,9 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
     field = 'accum_prcp'
     prcp = xr.open_dataset(base_path + field + '.nc')[field]
 
-    field = 'sfc_temp'
-    temp = xr.open_dataset(base_path + field + '.nc')[field]
+    field = 'air_temp'
+    temp = xr.open_dataset(
+        base_path_temp + field + '.nc')[field].isel(theta_lvl=0)
 
     lab_pos = []
     for i in np.arange(-170, 190, 30):
@@ -41,8 +45,8 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
     temp_lab_pos = []
     for i in np.arange(-170+15, 190+15, 30):
         temp_lab_pos += list(zip(
-            np.ones(4)*i,
-            np.array([-40, -10, 10, 40])))
+            np.ones(7)*i,
+            np.array([-85, -60, -30, -15, 15, 30, 60, 85])))
 
     # Omni Globe
     lvls = np.array([0.2, 1, 2, 5, 10, 20, 50, 100, 150, 200])
@@ -54,12 +58,10 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
     mslp_lab_lvls = np.arange(840, 1120, 8)
     mslp_fmt = {p: '{} hPa'.format(p) for p in mslp_lab_lvls}
 
-    t1 = 10
-    t2 = 20
+    temp_lvls = np.arange(-15, 60, 15)
 
     temp_fmt = {
-        t1: u'{}\u00B0C'.format(t1),
-        t2: u'{}\u00B0C'.format(t2)}
+        t: u'{}\u00B0C'.format(t) for t in temp_lvls}
 
     for i in np.arange(len(mslp.time.values))[i_min: i_max]:
         time = mslp.time.values[i]
@@ -121,7 +123,7 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
 
         conp = ax.contourf(
             prcp_i.lon, prcp_i.lat, prcp_i, levels=lvls,
-            extend='max', colors=colors[:-1], alpha=.6)
+            extend='max', colors=colors[:-1], alpha=1)
         conp.cmap.set_over(colors[-1])
         conp.changed()
 
@@ -147,43 +149,26 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
 
         ax.contour(
             mslp_i.lon, mslp_i.lat, mslp_i/1e2,
-            levels=np.arange(844, 1104, 8), colors='grey',
+            levels=np.arange(848, 1108, 16), colors='grey',
             linewidths=1)
 
-        con8 = ax.contour(
+        con16 = ax.contour(
             mslp_i.lon, mslp_i.lat, mslp_i/1e2,
-            levels=np.arange(840, 1120, 8), colors='k',
+            levels=np.arange(840, 1120, 16), colors='k',
             linewidths=1)
 
         ax.clabel(
-            con8, inline=True, fontsize=10, manual=lab_pos, fmt=mslp_fmt)
+            con16, inline=True, fontsize=10, manual=lab_pos, fmt=mslp_fmt)
 
         print('Plotting temp.')
 
         cont = ax.contour(
             temp_i.lon, temp_i.lat, temp_i,
-            levels=np.array([t1, t2]), colors=['blue', 'red'],
-            linewidths=1, linestyles='solid')
+            levels=temp_lvls, cmap='plasma',
+            linewidths=.5, linestyles='solid')
 
         ax.clabel(
             cont, inline=True, fontsize=10, manual=temp_lab_pos, fmt=temp_fmt)
-
-        for lt in [-50, 0, 50]:
-            ax.text(
-                sunrise_lon-3, lt, 'Sunrise',
-                rotation='vertical', color='orange',
-                fontsize=12, alpha=.8)
-            ax.text(
-                sunset_lon-3, lt, 'Sunset',
-                rotation='vertical', color='purple',
-                fontsize=12, alpha=.8)
-
-        ax.plot(
-            [sunrise_lon, sunrise_lon],
-            [-90, 90], '--', color='orange', alpha=.8)
-        ax.plot(
-            [sunset_lon, sunset_lon],
-            [-90, 90], '--', alpha=.8, color='purple')
 
         # Get local melbourne time - with daylight savings calculated!
         first_sunday_oct = np.busday_offset(
@@ -209,12 +194,17 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
             mel_time_dt.day_name()[:3] + ' '
             + mel_time_dt.strftime('%d/%m/%Y %H:%M'))
 
-        label = 'ACCESS-G t+{:03d} h \n {} [UTC] \n {} [{}]'.format(
-            i+1, time_str, mel_time_str, mel_tz)
+        label = 'ACCESS-G t+{:03d} h \n {} [UTC]'.format(
+            i+1, time_str, )
+
+        label_aus = '{} [{}]'.format(mel_time_str, mel_tz)
 
         ax.text(
-            -152, 2, label, ha='center', fontsize=10,
+            -152, 1, label, ha='center', fontsize=10,
             backgroundcolor=[1, 1, 1, .7])
+
+        ax.text(
+            134, -25, label_aus, ha='center', va='center', fontsize=10)
 
         ax.axis('off')
 

@@ -7,7 +7,6 @@ import pandas as pd
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-# testasdf
 
 
 def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):

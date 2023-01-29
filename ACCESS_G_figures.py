@@ -17,6 +17,9 @@ def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
     if gadi:
         base_path = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
             str(last_wed).replace('-', ''))
+        base_path_temp = '/g/data/wr45/ops_aps3/access-g/1/'
+        base_path_temp += '{}/0000/fc/ml/'.format(
+            str(last_wed).replace('-', ''))
     else:
         base_path = 'https://dapds00.nci.org.au/thredds/dodsC/'
         base_path += 'wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(

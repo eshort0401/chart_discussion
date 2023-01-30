@@ -9,9 +9,6 @@ parser.add_argument(
     '--max', '-M', type=int, default=240,
     help='starting index')
 parser.add_argument(
-    '--max', '-M', type=int, default=240,
-    help='starting index')
-parser.add_argument(
     '-w', '--winds', action='store_true', help='create wind plot')
 
 args = parser.parse_args()

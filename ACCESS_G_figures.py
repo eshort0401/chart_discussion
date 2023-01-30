@@ -322,11 +322,17 @@ def gen_omniglobe_wind_mslp(gadi=True, i_min=1, i_max=240):
         # Setup Map
         setup_grid(ax, proj)
 
-        space = 15
+        space = 18
+
+        # import pdb; pdb.set_trace()
+
+        LON, LAT = np.meshgrid(u_i.lon, u_i.lat)
+
         ax.quiver(
             u_i.lon[::space], u_i.lat[::space],
-            u_i[::space, ::space], v_i[::space, ::space],
-            scale=360*8, scale_units='width', width=5e-4,
+            (u_i/np.cos(LAT/180*np.pi))[::space, ::space],
+            v_i[::space, ::space],
+            scale=360*12, scale_units='width', width=5e-4,
             transform=proj)
 
         print('Plotting MSLP.')

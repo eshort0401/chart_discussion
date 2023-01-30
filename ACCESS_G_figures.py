@@ -11,16 +11,15 @@ import cartopy.feature as cfeature
 
 def gen_omniglobe_figs(gadi=True, i_min=1, i_max=240):
 
-    last_wed = np.busday_offset(
-        str(np.datetime64('today')), 0, roll='backward', weekmask='Wed')
+    last_fc = np.datetime64('today') - np.timedelta64(1, 'D')
 
     if gadi:
         base_path = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_wed).replace('-', ''))
+            str(last_fc).replace('-', ''))
     else:
         base_path = 'https://dapds00.nci.org.au/thredds/dodsC/'
         base_path += 'wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_wed).replace('-', ''))
+            str(last_fc).replace('-', ''))
 
     field = 'mslp'
     mslp = xr.open_dataset(base_path + field + '.nc')[field]

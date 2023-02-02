@@ -59,7 +59,7 @@ def create_colorbar(ax, con, lon=-177, lat=-10):
     cbbox.set_yticklabels([])
     cbbox.set_yticks([])
 
-    axin = ax.inset_axes([lon+2, lat+7, 50, 3], transform=ccrs.PlateCarree())
+    axin = ax.inset_axes([lon+2, lat+7, 50, 3], transform=ax.transData)
     cbar = plt.colorbar(
         con, orientation='horizontal', ax=ax, cax=axin)
     return cbar

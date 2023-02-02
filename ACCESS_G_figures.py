@@ -59,7 +59,7 @@ def create_colorbar(ax, con, lon=-177, lat=-10):
     cbbox.set_yticklabels([])
     cbbox.set_yticks([])
 
-    axin = ax.inset_axes([lon+2, lat+7, 50, 3], transform=ax.transData)
+    axin = ax.inset_axes([lon+2, lat+7, 50, 3], transform=ccrs.PlateCarree())
     cbar = plt.colorbar(
         con, orientation='horizontal', ax=ax, cax=axin)
     return cbar
@@ -79,24 +79,29 @@ def add_local_time(ax, time, tz_name, offset, lon, lat):
 
 def gen_omniglobe_mslp_prcp_temp(gadi=True, i_min=1, i_max=240):
 
-    last_fc = np.datetime64('today') - np.timedelta64(1, 'D')
-
     if gadi:
-        base_path = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_fc).replace('-', ''))
+        base_str = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'
     else:
-        base_path = 'https://dapds00.nci.org.au/thredds/dodsC/'
-        base_path += 'wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_fc).replace('-', ''))
+        base_str = 'https://dapds00.nci.org.au/thredds/dodsC/wr45/ops_aps3/'
+        base_str += 'access-g/1/{}/0000/fc/sfc/'
 
-    field = 'mslp'
-    mslp = xr.open_dataset(base_path + field + '.nc')[field]
+    def load_data(base_path):
+        field = 'mslp'
+        mslp = xr.open_dataset(base_path + field + '.nc')[field]
+        field = 'accum_prcp'
+        prcp = xr.open_dataset(base_path + field + '.nc')[field]
+        field = 'temp_scrn'
+        temp = xr.open_dataset(base_path + field + '.nc')[field]
+        return mslp, prcp, temp
 
-    field = 'accum_prcp'
-    prcp = xr.open_dataset(base_path + field + '.nc')[field]
-
-    field = 'temp_scrn'
-    temp = xr.open_dataset(base_path + field + '.nc')[field]
+    try:
+        last_fc = np.datetime64('today')
+        mslp, prcp, temp = load_data(
+            base_str.format(str(last_fc).replace('-', '')))
+    except:
+        last_fc = np.datetime64('today') - np.timedelta64(1, 'D')
+        mslp, prcp, temp = load_data(
+            base_str.format(str(last_fc).replace('-', '')))
 
     lab_pos = []
     for i in np.arange(-170, 190, 45):
@@ -233,27 +238,32 @@ def gen_omniglobe_mslp_prcp_temp(gadi=True, i_min=1, i_max=240):
 
 def gen_omniglobe_wind_mslp(gadi=True, i_min=1, i_max=240):
 
-    last_fc = np.datetime64('today') - np.timedelta64(1, 'D')
-
     if gadi:
-        base_path = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_fc).replace('-', ''))
+        base_str = '/g/data/wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'
     else:
-        base_path = 'https://dapds00.nci.org.au/thredds/dodsC/'
-        base_path += 'wr45/ops_aps3/access-g/1/{}/0000/fc/sfc/'.format(
-            str(last_fc).replace('-', ''))
+        base_str = 'https://dapds00.nci.org.au/thredds/dodsC/wr45/ops_aps3/'
+        base_str += 'access-g/1/{}/0000/fc/sfc/'
 
-    field = 'uwnd10m'
-    u = xr.open_dataset(base_path + field + '.nc')[field]
+    def load_data(base_path):
+        field = 'uwnd10m'
+        u = xr.open_dataset(base_path + field + '.nc')[field]
+        field = 'vwnd10m'
+        v = xr.open_dataset(base_path + field + '.nc')[field]
+        field = 'temp_scrn'
+        temp = xr.open_dataset(base_path + field + '.nc')[field]
+        field = 'mslp'
+        mslp = xr.open_dataset(base_path + field + '.nc')[field]
 
-    field = 'vwnd10m'
-    v = xr.open_dataset(base_path + field + '.nc')[field]
+        return u, v, temp, mslp
 
-    field = 'temp_scrn'
-    temp = xr.open_dataset(base_path + field + '.nc')[field]
-
-    field = 'mslp'
-    mslp = xr.open_dataset(base_path + field + '.nc')[field]
+    try:
+        last_fc = np.datetime64('today')
+        u, v, temp, mslp = load_data(
+            base_str.format(str(last_fc).replace('-', '')))
+    except:
+        last_fc = np.datetime64('today') - np.timedelta64(1, 'D')
+        u, v, temp, mslp = load_data(
+            base_str.format(str(last_fc).replace('-', '')))
 
     lab_pos = []
     for i in np.arange(-170, 190, 45):
@@ -397,4 +407,168 @@ def gen_omniglobe_wind_mslp(gadi=True, i_min=1, i_max=240):
 
         plt.savefig(
             save_dir + 'wind_{:04d}.png'.format(i), bbox_inches='tight',
+            facecolor='w', pad_inches=0, dpi=190)
+
+
+def gen_omniglobe_embedded_ACCESS_C(gadi=True, i_min=1, i_max=240):
+
+    if gadi:
+        base_str = '/g/data/wr45/ops_aps3/access-g/1/{}/0600/fc/sfc/'
+        base_vt_str = '/g/data/wr45/ops_aps3/access-vt/1/{}/1200/fcmm/sfc/'
+    else:
+        base_str = 'https://dapds00.nci.org.au/thredds/dodsC/wr45/ops_aps3/'
+        base_str += 'access-g/1/{}/0600/fc/sfc/'
+        base_vt_str = 'https://dapds00.nci.org.au/thredds/dodsC/wr45/ops_aps3/'
+        base_vt_str += 'access-vt/1/{}/1200/fc/sfc/'
+
+    def load_data(base_path, base_path_vt):
+        field = 'mslp'
+        mslp = xr.open_dataset(base_path + field + '.nc')[field]
+        mslp_vt = xr.open_dataset(base_path_vt + field + '.nc')[field]
+        field = 'accum_prcp'
+        prcp = xr.open_dataset(base_path + field + '.nc')[field]
+        prcp_vt = xr.open_dataset(base_path + field + '.nc')[field]
+        field = 'temp_scrn'
+        temp = xr.open_dataset(base_path + field + '.nc')[field]
+        temp_vt = xr.open_dataset(base_path + field + '.nc')[field]
+
+        return mslp, mslp_vt, prcp, prcp_vt, temp, temp_vt
+
+    last_fc = np.datetime64('today') - np.timedelta64(1, 'D')
+    base_path = base_str.format(str(last_fc).replace('-', ''))
+    base_path_vt = base_vt_str.format(str(last_fc).replace('-', ''))
+    mslp, mslp_vt, prcp, prcp_vt, temp, temp_vt = load_data(
+        base_path, base_path_vt)
+
+    lab_pos = []
+    for i in np.arange(-170, 190, 45):
+        lab_pos += list(zip(
+            np.arange(i-5, i+5),
+            np.array([-75, -60, -45, -30, -15, 15, 30, 45, 60, 75])))
+
+    temp_lab_pos = []
+    for i in np.arange(-170+15, 190+15, 45):
+        temp_lab_pos += list(zip(
+            np.arange(i-3, i+4),
+            np.array([-85, -60, -30, -15, 15, 30, 60, 85])))
+
+    # Omni Globe
+    lvls, colors = get_precip_lvls_colors()
+
+    mslp_lab_lvls = np.arange(840, 1120, 8)
+    mslp_fmt = {p: '{} hPa'.format(p) for p in mslp_lab_lvls}
+
+    temp_lvls = np.arange(-15, 60, 15)
+    temp_fmt = {
+        t: u'{}\u00B0C'.format(t) for t in temp_lvls}
+
+    for i in np.arange(len(mslp.time.values))[i_min: i_max]:
+        time = mslp.time.values[i]
+        print('Plotting {}'.format(
+            np.datetime_as_string(time, unit='m')))
+        plt.close('all')
+
+        proj = ccrs.PlateCarree(central_longitude=180)
+
+        fig = plt.figure(figsize=(28, 14))
+        ax = fig.add_subplot(1, 1, 1, projection=proj)
+
+        init_fonts()
+
+        # Setup Map
+        setup_grid(ax, proj)
+        ax.add_feature(cfeature.LAND)
+
+        # Plot datasets
+        mslp_i = mslp.sel(time=time)
+
+        prcp_i = (prcp.isel(time=i)-prcp.isel(time=(i-1)))
+        prcp_i = 3*prcp_i/997*1e3
+
+        temp_i = temp.sel(time=time) - 273.15
+
+        print('Plotting precipitation.')
+        conp = ax.contourf(
+            prcp_i.lon, prcp_i.lat, prcp_i, levels=lvls,
+            extend='max', colors=colors[:-1], alpha=1,
+            transform=ccrs.PlateCarree())
+        conp.cmap.set_over(colors[-1])
+        conp.changed()
+
+        # Setup colorbar
+        cbar = create_colorbar(ax, conp)
+        cbar.ax.set_xticklabels(
+            ['0.2', '1', '2', '5', '10', '20', '50', '100', '150', '200'])
+        cbar.ax.set_xlabel('Precipitation [mm/(3 h)]')
+
+        print('Plotting MSLP.')
+        con8 = ax.contour(
+            mslp_i.lon, mslp_i.lat, mslp_i/1e2,
+            levels=np.arange(840, 1120, 8), colors='k',
+            linewidths=1, transform=ccrs.PlateCarree())
+
+        ax.clabel(
+            con8, inline=True, fontsize=9, manual=lab_pos, fmt=mslp_fmt)
+
+        print('Plotting temp.')
+
+        cont = ax.contour(
+            temp_i.lon, temp_i.lat, temp_i,
+            levels=temp_lvls, cmap='plasma',
+            linewidths=.5, linestyles='solid', transform=ccrs.PlateCarree())
+
+        ax.clabel(
+            cont, inline=True, fontsize=9, manual=temp_lab_pos, fmt=temp_fmt)
+
+        # Get local melbourne time - with daylight savings calculated!
+        first_sunday_oct = np.busday_offset(
+            str(time)[:5] + '10', 0, roll='forward', weekmask='Sun')
+        first_sunday_apr = np.busday_offset(
+            str(time)[:5] + '04', 0, roll='forward', weekmask='Sun')
+
+        time_dt = pd.to_datetime(str(time))
+        time_str = (
+            time_dt.day_name()[:3] + ' ' + time_dt.strftime('%d/%m/%Y %H:%M'))
+
+        if (
+                time < (first_sunday_apr + np.timedelta64(2, 'h'))
+                or time >= (first_sunday_oct + np.timedelta64(2, 'h'))):
+            mel_tz = 'AEDT'
+            mel_time = time + np.timedelta64(11, 'h')
+        else:
+            mel_tz = 'AEST'
+            mel_time = time + np.timedelta64(10, 'h')
+
+        mel_time_dt = pd.to_datetime(str(mel_time))
+        mel_time_str = (
+            mel_time_dt.day_name()[:3] + ' '
+            + mel_time_dt.strftime('%d/%m/%Y %H:%M'))
+
+        label = 'ACCESS-G t+{:03d} h \n {} [UTC]'.format(
+            i+1, time_str, )
+        label_aus = '{} [{}]'.format(mel_time_str, mel_tz)
+
+        ax.text(
+            -152, 1, label, ha='center', fontsize=9,
+            backgroundcolor=[1, 1, 1, .7], transform=ccrs.PlateCarree())
+        ax.text(
+            134, -25, label_aus, ha='center', va='center', fontsize=9,
+            backgroundcolor=[1, 1, 1, .7], transform=ccrs.PlateCarree())
+
+        add_local_time(ax, time, 'MST', -7, -104, 40)
+        add_local_time(ax, time, 'AST', -4, -60, -5)
+        add_local_time(ax, time, 'WAT', 1, 16, 15)
+        add_local_time(ax, time, 'NST', 7, 84, 55)
+
+        ax.axis('off')
+
+        print('Saving.')
+
+        if gadi:
+            save_dir = '/g/data/w40/esh563/chart_discussion_figs/ACCESS_G_embedded_C/'
+        else:
+            save_dir = './mslp_C_anim/'
+
+        plt.savefig(
+            save_dir + 'mslp_{:04d}.png'.format(i), bbox_inches='tight',
             facecolor='w', pad_inches=0, dpi=190)

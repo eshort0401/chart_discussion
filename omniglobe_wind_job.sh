@@ -7,9 +7,8 @@
 #PBS -l walltime=04:00:00
 #PBS -l wd
 #PBS -l storage=gdata/w40+gdata/wr45+gdata/rt52+gdata/hh5+gdata/hj10+gdata/rq0
-#PBS -o "/home/563/esh563/chart_discussion/wind_logs/${PBS_JOBID}_out"
-#PBS -e "/home/563/esh563/chart_discussion/wind_logs/${PBS_JOBID}_err"
 
+rm -rf ~/omniglobe_wind_job.sh.{e,o}*
 python3 ~/chart_discussion/gen_omniglobe_fig_script.py -m $MIN -M $MAX -w
 for ((j=$MIN; j<$MAX; j++))
 do

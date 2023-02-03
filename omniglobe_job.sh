@@ -8,7 +8,7 @@
 #PBS -l wd
 #PBS -l storage=gdata/w40+gdata/wr45+gdata/rt52+gdata/hh5+gdata/hj10+gdata/rq0
 
-rm -rf ~/omniglobe_job.sh.{e,o}*
+rm -rf ~/chart_discussion/omniglobe_job.sh.{e,o}*
 python3 ~/chart_discussion/gen_omniglobe_fig_script.py -m $MIN -M $MAX
 for ((j=$MIN; j<$MAX; j++))
 do
